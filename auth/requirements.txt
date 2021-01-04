@@ -1,3 +1,7 @@
 dnspython
 git+https://github.com/webpy/webpy#egg=web.py
+paramiko
+PyYAML
+jinja2
+httplib2
 passlib

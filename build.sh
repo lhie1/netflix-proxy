@@ -76,6 +76,11 @@ log_action_begin_msg "checking if dig is installed"
 which dig > /dev/null
 log_action_end_msg $?
 
+log_action_begin_msg "installing net-tools"
+sudo apt-get -y update &>> ${CWD}/netflix-proxy.log\
+  && sudo apt-get -y install net-tools &>> ${CWD}/netflix-proxy.log
+log_action_end_msg $?
+
 log_action_begin_msg "testing available ports"
 for port in 80 443 53; do
     ! netstat -a -n -p | grep LISTEN | grep -P '\d+\.\d+\.\d+\.\d+::${port}' > /dev/null\
@@ -96,11 +101,6 @@ if [[ $(cat /proc/swaps | wc -l) -le 1 ]]; then
       printf "/swapfile   none    swap    sw    0   0\n" >> /etc/fstab
     log_action_end_msg $?
 fi
-
-log_action_begin_msg "installing net-tools"
-sudo apt-get -y update &>> ${CWD}/netflix-proxy.log\
-  && sudo apt-get -y install net-tools &>> ${CWD}/netflix-proxy.log
-log_action_end_msg $?
 
 # obtain the interface with the default gateway
 IFACE=$(get_iface 4)
@@ -178,6 +178,13 @@ sudo iptables -t nat -A PREROUTING -i ${IFACE} -p tcp --dport 80 -j REDIRECT --t
   && sudo iptables -A INPUT -p icmp -j ACCEPT\
   && sudo iptables -A INPUT -i lo -j ACCEPT\
   && sudo iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT\
+  && sudo iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 52000 -j ACCEPT\
+  && sudo iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 152 -j ACCEPT\
+  && sudo iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 153 -j ACCEPT\
+  && sudo iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 156 -j ACCEPT\
+  && sudo iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 170 -j ACCEPT\
+  && sudo iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 636 -j ACCEPT\
+  && sudo iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 8500:40000 -j ACCEPT\
   && sudo iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT\
   && sudo iptables -A INPUT -p udp -m udp --dport 53 -j ACCEPT\
   && sudo iptables -A INPUT -p udp -m udp --dport 5353 -j ACCEPT\
@@ -195,6 +202,13 @@ sudo ip6tables -t nat -A PREROUTING -i ${IFACE} -p tcp --dport 80 -j REDIRECT --
   && sudo ip6tables -A INPUT -p ipv6-icmp -j ACCEPT\
   && sudo ip6tables -A INPUT -i lo -j ACCEPT\
   && sudo ip6tables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT\
+  && sudo ip6tables -A INPUT -p tcp -m state --state NEW -m tcp --dport 52000 -j ACCEPT\
+  && sudo ip6tables -A INPUT -p tcp -m state --state NEW -m tcp --dport 152 -j ACCEPT\
+  && sudo ip6tables -A INPUT -p tcp -m state --state NEW -m tcp --dport 153 -j ACCEPT\
+  && sudo ip6tables -A INPUT -p tcp -m state --state NEW -m tcp --dport 156 -j ACCEPT\
+  && sudo ip6tables -A INPUT -p tcp -m state --state NEW -m tcp --dport 170 -j ACCEPT\
+  && sudo ip6tables -A INPUT -p tcp -m state --state NEW -m tcp --dport 636 -j ACCEPT\
+  && sudo ip6tables -A INPUT -p tcp -m state --state NEW -m tcp --dport 8500:40000 -j ACCEPT\
   && sudo ip6tables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT\
   && sudo ip6tables -A INPUT -p udp -m udp --dport 53 -j ACCEPT\
   && sudo ip6tables -A INPUT -p udp -m udp --dport 5353 -j ACCEPT\

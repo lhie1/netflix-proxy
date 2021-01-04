@@ -285,6 +285,7 @@ urls = (
     r'/add', 'Add',
     r'/autoadd', 'AutoAdd',
     r'/delete', 'Delete',
+    r'/autodel', 'AutoDel',
     r'/ddns', 'DDNSIndex',
     r'/ddns/add', 'DDNSAdd',
     r'/ddns/delete', 'DDNSDelete',
@@ -513,6 +514,28 @@ class Add:
             flash('error', 'exceeded %s maximim authorized IPs' % MAX_AUTH_IP_COUNT)                          
             return render.form(get_form())
 
+class AutoDel:
+    def GET(self):
+        try:
+            params = web.input(ip=get_client_public_ip())
+            user = validate_user(params.username,params.password)
+            if user is None: return 'Error: login'
+
+            ipadr = params.ip
+            is_ipv4 = web.net.validipaddr(ipadr)
+            is_ipv6 = web.net.validip6addr(ipadr)
+            if is_ipv4 == False and is_ipv6 == False:
+                return 'Error:IP not in right form'
+
+            db_result = db.delete('ipaddrs', where="user_id=%s AND ipaddr='%s'" % (user.ID,ipadr))
+            if db_result == 0: db_reslut = 1
+            for i in range(0, db_result):
+                if is_ipv4: result = run_ipt_cmd(ipadr, 'D')
+                if is_ipv6: result = run_ipt6_cmd(ipadr, 'D')
+            return 'OK'
+        except Exception as e:
+            web.debug(traceback.print_exc())
+            return db_result
 
 class Delete:
     
